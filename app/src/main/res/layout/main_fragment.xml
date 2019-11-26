@@ -7,7 +7,7 @@
     android:background="@color/colorPrimaryDark"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.main.MainFragment">
+    tools:context=".feature.counters.ui.CountersFragment">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/counter_recylerview"

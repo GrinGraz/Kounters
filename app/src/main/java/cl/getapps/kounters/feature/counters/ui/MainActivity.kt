@@ -1,8 +1,8 @@
-package cl.getapps.kounters
+package cl.getapps.kounters.feature.counters.ui
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import cl.getapps.kounters.ui.main.MainFragment
+import cl.getapps.kounters.R
 
 class MainActivity : AppCompatActivity() {
 
@@ -11,7 +11,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.main_activity)
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
-                    .replace(R.id.container, MainFragment.newInstance())
+                    .replace(R.id.container, CountersFragment.newInstance())
                     .commitNow()
         }
     }
