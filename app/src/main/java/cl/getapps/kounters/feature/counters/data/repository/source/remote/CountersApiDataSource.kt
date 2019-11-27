@@ -4,24 +4,24 @@ import cl.getapps.kounters.feature.counters.data.repository.source.CountersDataS
 import cl.getapps.kounters.feature.counters.data.repository.source.remote.api.CountersRetrofitApi
 import cl.getapps.kounters.feature.counters.data.repository.source.remote.entity.CountersResponse
 
-class CountersApiDataSource(val countersRetrofitApi: CountersRetrofitApi) : CountersDataSource {
-    override fun getCounters(): CountersResponse {
+class CountersApiDataSource(private val countersRetrofitApi: CountersRetrofitApi) : CountersDataSource {
+    override suspend fun getCounters(): CountersResponse {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun saveCounter(title: String): CountersResponse {
+    override suspend fun saveCounter(title: String): CountersResponse {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun removeCounter(id: Int): CountersResponse {
+    override suspend fun removeCounter(id: Int): CountersResponse {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun incrementCounter(id: Int): CountersResponse {
+    override suspend fun incrementCounter(id: Int): CountersResponse {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun decrementCounter(id: Int): CountersResponse {
+    override suspend fun decrementCounter(id: Int): CountersResponse {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 }
