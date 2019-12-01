@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import cl.getapps.kounters.R
+import cl.getapps.kounters.feature.counters.presentation.CountersViewModel
 
 class CountersFragment : Fragment() {
 
