@@ -8,9 +8,9 @@ import cl.getapps.kounters.base.data.BaseViewHolder
 import cl.getapps.kounters.feature.counters.domain.model.Counter
 import kotlinx.android.synthetic.main.item_counter.view.*
 
-class CountersRecyclerViewAdapter(private val adapterListener: AdapterListener) : BaseAdapter<Counter>() {
+class CountersRecyclerViewAdapter(private val itemEventListener: ItemEventListener) : BaseAdapter<Counter>() {
 
-    interface AdapterListener{
+    interface ItemEventListener{
         fun onIncrementClick(item: Counter, position: Int)
         fun onDecrementClick(item: Counter, position: Int)
         fun onRemove(item: Counter, position: Int)
@@ -29,8 +29,8 @@ class CountersRecyclerViewAdapter(private val adapterListener: AdapterListener) 
         return CounterViewHolder(itemView).also { holder ->
             with(itemView){
                 holder.resolveItem()?.let { counter ->
-                    btn_increment.setOnClickListener { adapterListener.onIncrementClick(counter, holder.adapterPosition) }
-                    btn_decrement.setOnClickListener { adapterListener.onDecrementClick(counter, holder.adapterPosition) }
+                    btn_increment.setOnClickListener { itemEventListener.onIncrementClick(counter, holder.adapterPosition) }
+                    btn_decrement.setOnClickListener { itemEventListener.onDecrementClick(counter, holder.adapterPosition) }
                 }
             }
         }
