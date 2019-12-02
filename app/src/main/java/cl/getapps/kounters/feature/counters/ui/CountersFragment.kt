@@ -1,16 +1,29 @@
 package cl.getapps.kounters.feature.counters.ui
 
-import androidx.lifecycle.ViewModelProviders
+import android.net.ConnectivityManager
 import android.os.Bundle
-import androidx.fragment.app.Fragment
+import android.util.DisplayMetrics
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import cl.getapps.kounters.R
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.LinearSmoothScroller
+import androidx.recyclerview.widget.RecyclerView
+import cl.getapps.kounters.base.areActiveNetwork
+import cl.getapps.kounters.base.data.Result
+import cl.getapps.kounters.base.showWithDelay
 import cl.getapps.kounters.feature.counters.domain.model.Counter
+import cl.getapps.kounters.feature.counters.domain.model.Counters
 import cl.getapps.kounters.feature.counters.presentation.CountersRecyclerViewAdapter
 import cl.getapps.kounters.feature.counters.presentation.CountersViewModel
+import cl.getapps.kounters.feature.counters.presentation.ViewModelFactory
+import com.google.android.material.snackbar.BaseTransientBottomBar
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.main_fragment.*
+import org.koin.android.ext.android.inject
 
 class CountersFragment : Fragment() {
 
@@ -18,36 +31,131 @@ class CountersFragment : Fragment() {
         fun newInstance() = CountersFragment()
     }
 
-    private lateinit var viewModel: CountersViewModel
-
+    private val viewModelFactory: ViewModelFactory by inject()
+    private val viewModel by viewModels<CountersViewModel> { viewModelFactory }
+    private val connectivityManager: ConnectivityManager by inject()
     private var recyclerViewAdapter = CountersRecyclerViewAdapter(ItemEventListener())
+    private lateinit var snackbar: Snackbar
+    private lateinit var bottomSheetFragment: BottomSheetFragment
+    private lateinit var linearLayoutManager: RecyclerView.LayoutManager
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View {
-        return inflater.inflate(R.layout.main_fragment, container, false)
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        return inflater.inflate(cl.getapps.kounters.R.layout.main_fragment, container, false)
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        viewModel = ViewModelProviders.of(this).get(CountersViewModel::class.java)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        setupRecycler()
+
+        snackbar = Snackbar.make(coordinator, "", Snackbar.LENGTH_INDEFINITE)
+
+        with(viewModel) {
+            items.observe(this@CountersFragment, Observer(::renderResult))
+            if (connectivityManager.areActiveNetwork()) fetchCounters()
+            else showSnackBar("No internet connection", true)
+        }
+
+        fab.setOnClickListener {
+            bottomSheetFragment = BottomSheetFragment.newInstance(BottomSheetListener())
+            fragmentManager?.let { it1 -> bottomSheetFragment.show(it1, "save_counter_fragment") }
+        }
+    }
+
+    private fun setupRecycler() {
+        linearLayoutManager = LinearLayoutManager(requireContext())
+        with(counter_recylerview) {
+            layoutManager = linearLayoutManager
+            adapter = recyclerViewAdapter
+            addScrollListener(this)
+            setHasFixedSize(true)
+        }
+    }
+
+    private fun addScrollListener(recyclerView: RecyclerView) {
+        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                if (dy > 0 && fab.visibility == View.VISIBLE) {
+                    fab.hide()
+                    title.visibility = View.GONE
+                } else if (dy < 0 && fab.visibility != View.VISIBLE) {
+                    fab.show()
+                    title.visibility = View.VISIBLE
+                }
+            }
+        })
+    }
+
+    fun renderResult(result: Result<Counters>) {
+        when (result) {
+            is Result.Success -> {
+                recyclerViewAdapter.swapItems(result.data.reversed())
+                showWithDelay(500) {
+                    snackbar.dismiss()
+                }
+            }
+            is Result.Error -> {
+                showWithDelay(500) { showSnackBar("Problems connecting to server", true) }
+            }
+            is Result.Loading -> {
+                showWithDelay(500) { showSnackBar("Loading counters...") }
+            }
+        }
+    }
+
+    private fun showSnackBar(message: String, isError: Boolean = false) {
+        if (::bottomSheetFragment.isInitialized && bottomSheetFragment.isAdded) bottomSheetFragment.dismiss()
+        snackbar.anchorView = fab
+        snackbar.setText(message).setDuration(BaseTransientBottomBar.LENGTH_INDEFINITE).run {
+            if (isError) setAction("Retry") {
+                viewModel.fetchCounters()
+            }.show() else {
+                setAction(null, null)
+                show()
+            }
+        }
     }
 
     inner class ItemEventListener :
         CountersRecyclerViewAdapter.ItemEventListener {
         override fun onIncrementClick(item: Counter, position: Int) {
-
+            viewModel.increment(item.id)
         }
 
         override fun onDecrementClick(item: Counter, position: Int) {
-            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            if (item.count.toInt() > 0) viewModel.decrement(item.id)
         }
 
         override fun onRemove(item: Counter, position: Int) {
-            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            viewModel.remove(item.id)
+            recyclerViewAdapter.removeItemAt(position, true)
         }
 
-        override fun onSave(item: Counter, position: Int) {
-            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        override fun onSave() {
+            showWithDelay(1000) {
+                val linearSmoothScroller = object : LinearSmoothScroller(context) {
+                    override fun calculateSpeedPerPixel(displayMetrics: DisplayMetrics): Float {
+                        return 150f / displayMetrics.densityDpi
+                    }
+                }
+
+                linearSmoothScroller.targetPosition = 0
+                linearLayoutManager.startSmoothScroll(linearSmoothScroller)
+            }
+        }
+    }
+
+    inner class BottomSheetListener : BottomSheetFragment.Listener {
+        override fun onNetworkUnavailable() {
+            showSnackBar("No internet connection", true)
+        }
+
+        override fun onResult(result: Result<Counters>) {
+            renderResult(result)
         }
     }
 }

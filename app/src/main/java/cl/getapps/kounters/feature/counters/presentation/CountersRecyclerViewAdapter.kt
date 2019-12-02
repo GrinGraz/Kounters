@@ -8,13 +8,14 @@ import cl.getapps.kounters.base.data.BaseViewHolder
 import cl.getapps.kounters.feature.counters.domain.model.Counter
 import kotlinx.android.synthetic.main.item_counter.view.*
 
-class CountersRecyclerViewAdapter(private val itemEventListener: ItemEventListener) : BaseAdapter<Counter>() {
+class CountersRecyclerViewAdapter(private val itemEventListener: ItemEventListener) :
+    BaseAdapter<Counter>() {
 
-    interface ItemEventListener{
+    interface ItemEventListener {
         fun onIncrementClick(item: Counter, position: Int)
         fun onDecrementClick(item: Counter, position: Int)
         fun onRemove(item: Counter, position: Int)
-        fun onSave(item: Counter, position: Int)
+        fun onSave()
     }
 
     override fun provideComparator(): Comparator<Counter> = compareBy(Counter::id)
@@ -27,12 +28,32 @@ class CountersRecyclerViewAdapter(private val itemEventListener: ItemEventListen
             LayoutInflater.from(parent.context).inflate(R.layout.item_counter, parent, false)
 
         return CounterViewHolder(itemView).also { holder ->
-            with(itemView){
-                holder.resolveItem()?.let { counter ->
-                    btn_increment.setOnClickListener { itemEventListener.onIncrementClick(counter, holder.adapterPosition) }
-                    btn_decrement.setOnClickListener { itemEventListener.onDecrementClick(counter, holder.adapterPosition) }
+            with(itemView) {
+                setOnLongClickListener {
+                    itemEventListener.onRemove(
+                        holder.resolveItem()!!,
+                        holder.adapterPosition
+                    )
+                    return@setOnLongClickListener true
+                }
+                btn_increment.setOnClickListener {
+                    itemEventListener.onIncrementClick(
+                        holder.resolveItem()!!,
+                        holder.adapterPosition
+                    )
+                }
+                btn_decrement.setOnClickListener {
+                    itemEventListener.onDecrementClick(
+                        holder.resolveItem()!!,
+                        holder.adapterPosition
+                    )
                 }
             }
         }
+    }
+
+    override fun swapItems(new: List<Counter>) {
+        super.swapItems(new)
+        itemEventListener.onSave()
     }
 }
