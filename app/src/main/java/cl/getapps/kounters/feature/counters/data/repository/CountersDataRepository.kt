@@ -5,8 +5,7 @@ import cl.getapps.kounters.feature.counters.domain.model.Counters
 import cl.getapps.kounters.feature.counters.domain.repository.CountersRepository
 
 class CountersDataRepository(
-    private val remoteDataSource: CountersDataSource,
-    private val localDataSource: CountersDataSource
+    private val remoteDataSource: CountersDataSource
 ) : CountersRepository {
     override suspend fun getCounters(): Counters {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
