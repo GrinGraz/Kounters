@@ -2,4 +2,4 @@ package cl.getapps.kounters.feature.counters.data.repository.source.remote.entit
 
 typealias CountersResponse = List<CounterEntity>
 
-data class CounterEntity(val id: Int, val title: String, val count: Int)
+data class CounterEntity(val id: String, val title: String, val count: Int)

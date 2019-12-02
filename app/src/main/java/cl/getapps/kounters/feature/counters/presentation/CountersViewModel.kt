@@ -3,10 +3,16 @@ package cl.getapps.kounters.feature.counters.presentation
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import cl.getapps.kounters.base.data.Result
 import cl.getapps.kounters.feature.counters.domain.model.Counters
 import cl.getapps.kounters.feature.counters.domain.usecase.*
-import cl.getapps.kounters.feature.counters.presentation.CountersSortType.ID
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
+import java.io.InterruptedIOException
+import java.net.SocketException
+import java.net.SocketTimeoutException
+import java.net.UnknownServiceException
 
 class CountersViewModel(
     private val decrementCounter: DecrementCounter,
@@ -16,35 +22,46 @@ class CountersViewModel(
     private val saveCounter: SaveCounter
 ) : ViewModel() {
 
-    private val items = MutableLiveData<Counters>().apply { value = emptyList() }
+    val items = MutableLiveData<Result<Counters>>().apply { value = Result.Loading }
 
-    fun decrement(id: Int) {
-        viewModelScope.launch {
-            items.value = decrementCounter(id)
+    private val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        when (throwable) {
+            is HttpException -> items.value = Result.Error(throwable)
+            is InterruptedIOException -> items.value = Result.Error(throwable)
+            is SocketException -> items.value = Result.Error(throwable)
+            is SocketTimeoutException -> items.value = Result.Error(throwable)
+            is UnknownServiceException -> items.value = Result.Error(throwable)
         }
     }
 
-    fun increment(id: Int) {
-        viewModelScope.launch {
-            items.value = incrementCounter(id)
+    fun decrement(id: String) {
+        viewModelScope.launch(coroutineExceptionHandler) {
+            items.value = Result.Success(decrementCounter(id))
         }
     }
 
-    fun counters(sortedBy: CountersSortType = ID) {
-        viewModelScope.launch {
-            items.value = getCounters()
+    fun increment(id: String) {
+        viewModelScope.launch(coroutineExceptionHandler) {
+            items.value = Result.Success(incrementCounter(id))
         }
     }
 
-    fun remove(id: Int) {
-        viewModelScope.launch {
-            items.value = removeCounter(id)
+    fun fetchCounters() {
+        items.value = Result.Loading
+        viewModelScope.launch(coroutineExceptionHandler) {
+            items.value = Result.Success(getCounters())
+        }
+    }
+
+    fun remove(id: String) {
+        viewModelScope.launch(coroutineExceptionHandler) {
+            items.value = Result.Success(removeCounter(id))
         }
     }
 
     fun save(title: String) {
-        viewModelScope.launch {
-            items.value = saveCounter(title)
+        viewModelScope.launch(coroutineExceptionHandler) {
+            items.value = Result.Success(saveCounter(title))
         }
     }
 }
