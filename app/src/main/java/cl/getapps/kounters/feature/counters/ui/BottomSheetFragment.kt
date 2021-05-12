@@ -29,7 +29,7 @@ class BottomSheetFragment() : BottomSheetDialogFragment() {
 
     interface Listener {
         fun onResult(result: Result<*>)
-        fun onNetworkUnavailable()
+        fun onNetworkUnavailable(title: String)
     }
 
     private val connectivityManager: ConnectivityManager by inject()
@@ -55,7 +55,7 @@ class BottomSheetFragment() : BottomSheetDialogFragment() {
                     item.observe(this@BottomSheetFragment, Observer(::onResult))
                     save(counter_name.text.toString())
                 }
-            } else listener.onNetworkUnavailable()
+            } else listener.onNetworkUnavailable(counter_name.text.toString())
         }
     }
 

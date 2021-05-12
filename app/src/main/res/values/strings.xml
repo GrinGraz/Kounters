@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Kounters</string>
+    <string name="no_connection_message">No internet connection</string>
+    <string name="label_retry">Retry</string>
+    <string name="loading_counters_message">Loading counters...</string>
+    <string name="server_issues_message">Problems connecting to server</string>
+    <string name="save_counter_fragment_tag">save_counter_fragment</string>
 </resources>

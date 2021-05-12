@@ -12,6 +12,7 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
+import cl.getapps.kounters.R
 import cl.getapps.kounters.base.areActiveNetwork
 import cl.getapps.kounters.base.data.Result
 import cl.getapps.kounters.base.showWithDelay
@@ -43,7 +44,7 @@ class CountersFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        return inflater.inflate(cl.getapps.kounters.R.layout.main_fragment, container, false)
+        return inflater.inflate(R.layout.main_fragment, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -57,12 +58,20 @@ class CountersFragment : Fragment() {
             items.observe(this@CountersFragment, Observer(::renderResult))
             item.observe(this@CountersFragment, Observer(::renderResult))
             if (connectivityManager.areActiveNetwork()) fetchCounters()
-            else showSnackBar("No internet connection", true)
+            else showSnackBar(
+                message = getString(R.string.no_connection_message),
+                isError = true,
+                action = { fetchCounters() })
         }
 
         fab.setOnClickListener {
             bottomSheetFragment = BottomSheetFragment.newInstance(BottomSheetListener())
-            fragmentManager?.let { it1 -> bottomSheetFragment.show(it1, "save_counter_fragment") }
+            fragmentManager?.let { it1 ->
+                bottomSheetFragment.show(
+                    it1,
+                    getString(R.string.save_counter_fragment_tag)
+                )
+            }
         }
     }
 
@@ -112,20 +121,32 @@ class CountersFragment : Fragment() {
 
             }
             is Result.Error   -> {
-                showWithDelay(500) { showSnackBar("Problems connecting to server", true) }
+                showWithDelay(500) {
+                    showSnackBar(
+                        message = getString(R.string.server_issues_message),
+                        isError = true,
+                        action = { fetchCounters() }
+                    )
+                }
             }
             is Result.Loading -> {
-                showWithDelay(500) { showSnackBar("Loading counters...") }
+                showWithDelay(500) {
+                    showSnackBar(message = getString(R.string.loading_counters_message))
+                }
             }
         }
     }
 
-    private fun showSnackBar(message: String, isError: Boolean = false) {
+    private fun showSnackBar(
+        message: String,
+        isError: Boolean = false,
+        action: CountersViewModel.() -> Unit = {}
+    ) {
         if (::bottomSheetFragment.isInitialized && bottomSheetFragment.isAdded) bottomSheetFragment.dismiss()
         snackBar.anchorView = fab
         snackBar.setText(message).setDuration(BaseTransientBottomBar.LENGTH_INDEFINITE).run {
-            if (isError) setAction("Retry") {
-                viewModel.fetchCounters()
+            if (isError) setAction(getString(R.string.label_retry)) {
+                action(viewModel)
             }.show() else {
                 setAction(null, null)
                 show()
@@ -163,8 +184,11 @@ class CountersFragment : Fragment() {
     }
 
     inner class BottomSheetListener : BottomSheetFragment.Listener {
-        override fun onNetworkUnavailable() {
-            showSnackBar("No internet connection", true)
+        override fun onNetworkUnavailable(title: String) {
+            showSnackBar(
+                message = getString(R.string.no_connection_message),
+                isError = true,
+                action = { save(title) })
         }
 
         override fun onResult(result: Result<*>) {
