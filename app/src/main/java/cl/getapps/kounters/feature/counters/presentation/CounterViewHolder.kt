@@ -8,8 +8,8 @@ import kotlinx.android.synthetic.main.item_counter.view.*
 class CounterViewHolder(itemView: View) : BaseViewHolder<Counter>(itemView) {
     override fun bindView(item: Counter) {
         with(itemView) {
-            counter_title.text = item.title
-            counter_amount.text = item.count
+            counter_title.text = item.name
+            counter_amount.text = item.count.toString()
         }
     }
 }

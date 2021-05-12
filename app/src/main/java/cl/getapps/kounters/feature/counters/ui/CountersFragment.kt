@@ -35,7 +35,7 @@ class CountersFragment : Fragment() {
     private val viewModel by viewModels<CountersViewModel> { viewModelFactory }
     private val connectivityManager: ConnectivityManager by inject()
     private var recyclerViewAdapter = CountersRecyclerViewAdapter(ItemEventListener())
-    private lateinit var snackbar: Snackbar
+    private lateinit var snackBar: Snackbar
     private lateinit var bottomSheetFragment: BottomSheetFragment
     private lateinit var linearLayoutManager: RecyclerView.LayoutManager
 
@@ -51,10 +51,11 @@ class CountersFragment : Fragment() {
 
         setupRecycler()
 
-        snackbar = Snackbar.make(coordinator, "", Snackbar.LENGTH_INDEFINITE)
+        snackBar = Snackbar.make(coordinator, "", Snackbar.LENGTH_INDEFINITE)
 
         with(viewModel) {
             items.observe(this@CountersFragment, Observer(::renderResult))
+            item.observe(this@CountersFragment, Observer(::renderResult))
             if (connectivityManager.areActiveNetwork()) fetchCounters()
             else showSnackBar("No internet connection", true)
         }
@@ -90,15 +91,27 @@ class CountersFragment : Fragment() {
         })
     }
 
-    fun renderResult(result: Result<Counters>) {
+    fun renderResult(result: Result<*>) {
         when (result) {
             is Result.Success -> {
-                recyclerViewAdapter.swapItems(result.data.reversed())
-                showWithDelay(500) {
-                    snackbar.dismiss()
+                when (result.data) {
+                    is Counter -> {
+                        recyclerViewAdapter.addItemAt(result.data, 0, notifyChange = true)
+                        showWithDelay(500) {
+                            snackBar.dismiss()
+                        }
+                    }
+                    is List<*> -> {
+                        recyclerViewAdapter.swapItems(result.data as Counters)
+                        showWithDelay(500) {
+                            snackBar.dismiss()
+                        }
+                    }
+
                 }
+
             }
-            is Result.Error -> {
+            is Result.Error   -> {
                 showWithDelay(500) { showSnackBar("Problems connecting to server", true) }
             }
             is Result.Loading -> {
@@ -109,8 +122,8 @@ class CountersFragment : Fragment() {
 
     private fun showSnackBar(message: String, isError: Boolean = false) {
         if (::bottomSheetFragment.isInitialized && bottomSheetFragment.isAdded) bottomSheetFragment.dismiss()
-        snackbar.anchorView = fab
-        snackbar.setText(message).setDuration(BaseTransientBottomBar.LENGTH_INDEFINITE).run {
+        snackBar.anchorView = fab
+        snackBar.setText(message).setDuration(BaseTransientBottomBar.LENGTH_INDEFINITE).run {
             if (isError) setAction("Retry") {
                 viewModel.fetchCounters()
             }.show() else {
@@ -127,7 +140,7 @@ class CountersFragment : Fragment() {
         }
 
         override fun onDecrementClick(item: Counter, position: Int) {
-            if (item.count.toInt() > 0) viewModel.decrement(item.id)
+            if (item.count > 0) viewModel.decrement(item.id)
         }
 
         override fun onRemove(item: Counter, position: Int) {
@@ -154,7 +167,7 @@ class CountersFragment : Fragment() {
             showSnackBar("No internet connection", true)
         }
 
-        override fun onResult(result: Result<Counters>) {
+        override fun onResult(result: Result<*>) {
             renderResult(result)
         }
     }

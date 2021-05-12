@@ -1,6 +1,8 @@
 package cl.getapps.kounters.feature.counters.data.repository.source.remote.api
 
 import cl.getapps.kounters.feature.counters.data.repository.source.remote.entity.CounterBodyRequest
+import cl.getapps.kounters.feature.counters.data.repository.source.remote.entity.CounterCreateBodyRequest
+import cl.getapps.kounters.feature.counters.data.repository.source.remote.entity.CounterEntity
 import cl.getapps.kounters.feature.counters.data.repository.source.remote.entity.CountersResponse
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -12,7 +14,7 @@ interface CountersRetrofitApi {
     suspend fun getCounters(): CountersResponse
 
     @POST("counter")
-    suspend fun saveCounter(@Body body: CounterBodyRequest): CountersResponse
+    suspend fun saveCounter(@Body body: CounterCreateBodyRequest): CounterEntity
 
     @POST("counter/inc")
     suspend fun incrementCounter(@Body body: CounterBodyRequest): CountersResponse

@@ -33,7 +33,7 @@ fun ConnectivityManager?.areActiveNetwork(): Boolean {
 
 fun showWithDelay(delayInMillis: Long, block: () -> Unit) {
     CoroutineScope(Dispatchers.Main).launch {
-        withContext(Dispatchers.IO) { delay(delayInMillis) }
+        delay(delayInMillis)
         block()
     }
 }

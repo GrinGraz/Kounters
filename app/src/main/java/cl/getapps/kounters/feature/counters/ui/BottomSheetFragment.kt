@@ -28,7 +28,7 @@ class BottomSheetFragment() : BottomSheetDialogFragment() {
     }
 
     interface Listener {
-        fun onResult(result: Result<Counters>)
+        fun onResult(result: Result<*>)
         fun onNetworkUnavailable()
     }
 
@@ -52,13 +52,14 @@ class BottomSheetFragment() : BottomSheetDialogFragment() {
             if (connectivityManager.areActiveNetwork()) {
                 with(viewModel) {
                     items.observe(this@BottomSheetFragment, Observer(::onResult))
+                    item.observe(this@BottomSheetFragment, Observer(::onResult))
                     save(counter_name.text.toString())
                 }
             } else listener.onNetworkUnavailable()
         }
     }
 
-    private fun onResult(result: Result<Counters>) {
+    private fun onResult(result: Result<*>) {
         listener.onResult(result)
     }
 
