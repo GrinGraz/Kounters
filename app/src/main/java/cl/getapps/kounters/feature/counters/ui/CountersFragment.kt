@@ -39,6 +39,7 @@ class CountersFragment : Fragment() {
     private lateinit var snackBar: Snackbar
     private lateinit var bottomSheetFragment: BottomSheetFragment
     private lateinit var linearLayoutManager: RecyclerView.LayoutManager
+    private var lastItemPosition = -1
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -57,6 +58,7 @@ class CountersFragment : Fragment() {
         with(viewModel) {
             items.observe(this@CountersFragment, Observer(::renderResult))
             item.observe(this@CountersFragment, Observer(::renderResult))
+            itemRemoved.observe(this@CountersFragment, Observer(::renderResult))
             if (connectivityManager.areActiveNetwork()) fetchCounters()
             else showSnackBar(
                 message = getString(R.string.no_connection_message),
@@ -91,10 +93,8 @@ class CountersFragment : Fragment() {
                 super.onScrolled(recyclerView, dx, dy)
                 if (dy > 0 && fab.visibility == View.VISIBLE) {
                     fab.hide()
-                    title.visibility = View.GONE
                 } else if (dy < 0 && fab.visibility != View.VISIBLE) {
                     fab.show()
-                    title.visibility = View.VISIBLE
                 }
             }
         })
@@ -105,16 +105,23 @@ class CountersFragment : Fragment() {
             is Result.Success -> {
                 when (result.data) {
                     is Counter -> {
-                        recyclerViewAdapter.addItemAt(result.data, 0, notifyChange = true)
                         showWithDelay(500) {
                             snackBar.dismiss()
                         }
+                        if (lastItemPosition == -1) recyclerViewAdapter.addItemAt(result.data, 0, true)
+                        else recyclerViewAdapter.updateItem(lastItemPosition) { result.data }
                     }
                     is List<*> -> {
-                        recyclerViewAdapter.swapItems(result.data as Counters)
                         showWithDelay(500) {
                             snackBar.dismiss()
                         }
+                        recyclerViewAdapter.swapItems((result.data as Counters))
+                    }
+                    is Unit? -> {
+                        showWithDelay(500) {
+                            snackBar.dismiss()
+                        }
+                        recyclerViewAdapter.removeItemAt(lastItemPosition)
                     }
 
                 }
@@ -157,20 +164,23 @@ class CountersFragment : Fragment() {
     inner class ItemEventListener :
         CountersRecyclerViewAdapter.ItemEventListener {
         override fun onIncrementClick(item: Counter, position: Int) {
+            lastItemPosition = position
             viewModel.increment(item.id)
         }
 
         override fun onDecrementClick(item: Counter, position: Int) {
+            lastItemPosition = position
             if (item.count > 0) viewModel.decrement(item.id)
         }
 
         override fun onRemove(item: Counter, position: Int) {
+            lastItemPosition = position
             viewModel.remove(item.id)
-            recyclerViewAdapter.removeItemAt(position, true)
         }
 
         override fun onSave() {
-            showWithDelay(1000) {
+            lastItemPosition = -1
+            showWithDelay(0) {
                 val linearSmoothScroller = object : LinearSmoothScroller(context) {
                     override fun calculateSpeedPerPixel(displayMetrics: DisplayMetrics): Float {
                         return 150f / displayMetrics.densityDpi

@@ -25,7 +25,7 @@ class CountersRecyclerViewAdapter(private val itemEventListener: ItemEventListen
         viewType: Int
     ): BaseViewHolder<Counter> {
         val itemView =
-            LayoutInflater.from(parent.context).inflate(R.layout.item_counter, parent, false)
+            LayoutInflater.from(parent.context).inflate(R.layout.item_counter, parent,false)
 
         return CounterViewHolder(itemView).also { holder ->
             with(itemView) {
@@ -54,6 +54,11 @@ class CountersRecyclerViewAdapter(private val itemEventListener: ItemEventListen
 
     override fun swapItems(new: List<Counter>) {
         super.swapItems(new)
+        itemEventListener.onSave()
+    }
+
+    override fun addItemAt(item: Counter, position: Int, notifyChange: Boolean) {
+        super.addItemAt(item, position, notifyChange)
         itemEventListener.onSave()
     }
 }

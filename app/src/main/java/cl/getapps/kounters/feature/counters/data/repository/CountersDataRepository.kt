@@ -17,15 +17,15 @@ class CountersDataRepository(
         return remoteDataSource.saveCounter(title).toCounter()
     }
 
-    override suspend fun removeCounter(id: Int): Counters {
-        return remoteDataSource.removeCounter(id).map { it.toCounter() }
+    override suspend fun removeCounter(id: Int): Unit? {
+        return remoteDataSource.removeCounter(id)
     }
 
-    override suspend fun incrementCounter(id: Int): Counters {
-        return remoteDataSource.incrementCounter(id).map { it.toCounter() }
+    override suspend fun incrementCounter(id: Int): Counter {
+        return remoteDataSource.incrementCounter(id).toCounter()
     }
 
-    override suspend fun decrementCounter(id: Int): Counters {
-        return remoteDataSource.decrementCounter(id).map { it.toCounter() }
+    override suspend fun decrementCounter(id: Int): Counter {
+        return remoteDataSource.decrementCounter(id).toCounter()
     }
 }

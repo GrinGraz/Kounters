@@ -60,6 +60,13 @@ abstract class BaseAdapter<T> : RecyclerView.Adapter<BaseViewHolder<T>>() {
             notifyItemInserted(position)
     }
 
+    open fun addItem(item: T, notifyChange: Boolean = true) {
+        items.add(item)
+
+        if (notifyChange)
+            notifyItemInserted(0)
+    }
+
     open fun replaceItemAt(item: T, position: Int, notifyChange: Boolean = true) {
         items[position] = item
 

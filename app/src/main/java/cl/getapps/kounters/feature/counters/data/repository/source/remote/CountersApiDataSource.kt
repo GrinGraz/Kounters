@@ -17,15 +17,15 @@ class CountersApiDataSource(private val countersRetrofitApi: CountersRetrofitApi
         return countersRetrofitApi.saveCounter(CounterCreateBodyRequest(name = title))
     }
 
-    override suspend fun removeCounter(id: Int): CountersResponse {
+    override suspend fun removeCounter(id: Int): Unit? {
         return countersRetrofitApi.deleteCounter(CounterBodyRequest(id = id))
     }
 
-    override suspend fun incrementCounter(id: Int): CountersResponse {
+    override suspend fun incrementCounter(id: Int): CounterEntity {
         return countersRetrofitApi.incrementCounter(CounterBodyRequest(id = id))
     }
 
-    override suspend fun decrementCounter(id: Int): CountersResponse {
+    override suspend fun decrementCounter(id: Int): CounterEntity {
         return countersRetrofitApi.decrementCounter(CounterBodyRequest(id = id))
     }
 }

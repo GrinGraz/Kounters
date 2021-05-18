@@ -25,6 +25,8 @@ class CountersViewModel(
 
     val items = MutableLiveData<Result<Counters>>().apply { value = Result.Loading }
     val item = MutableLiveData<Result<Counter>>().apply { value = Result.Loading }
+    val itemRemoved = MutableLiveData<Result<Unit?>>().apply { value = Result.Loading }
+    val totalCount = MutableLiveData<Int>().apply { value = 0 }
 
     private val coroutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
         println("Error -> $throwable")
@@ -40,13 +42,13 @@ class CountersViewModel(
 
     fun decrement(id: Int) {
         viewModelScope.launch(coroutineExceptionHandler) {
-            items.value = Result.Success(decrementCounter(id))
+            item.value = Result.Success(decrementCounter(id))
         }
     }
 
     fun increment(id: Int) {
         viewModelScope.launch(coroutineExceptionHandler) {
-            items.value = Result.Success(incrementCounter(id))
+            item.value = Result.Success(incrementCounter(id))
         }
     }
 
@@ -59,14 +61,13 @@ class CountersViewModel(
 
     fun remove(id: Int) {
         viewModelScope.launch(coroutineExceptionHandler) {
-            items.value = Result.Success(removeCounter(id))
+            itemRemoved.value = Result.Success(removeCounter(id))
         }
     }
 
     fun save(title: String) {
         viewModelScope.launch(coroutineExceptionHandler) {
-            val result = saveCounter(title)
-            item.value = Result.Success(result)
+            item.value = Result.Success(saveCounter(title))
         }
     }
 }

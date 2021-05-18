@@ -1,13 +1,7 @@
 package cl.getapps.kounters.feature.counters.data.repository.source.remote.api
 
-import cl.getapps.kounters.feature.counters.data.repository.source.remote.entity.CounterBodyRequest
-import cl.getapps.kounters.feature.counters.data.repository.source.remote.entity.CounterCreateBodyRequest
-import cl.getapps.kounters.feature.counters.data.repository.source.remote.entity.CounterEntity
-import cl.getapps.kounters.feature.counters.data.repository.source.remote.entity.CountersResponse
-import retrofit2.http.Body
-import retrofit2.http.GET
-import retrofit2.http.HTTP
-import retrofit2.http.POST
+import cl.getapps.kounters.feature.counters.data.repository.source.remote.entity.*
+import retrofit2.http.*
 
 interface CountersRetrofitApi {
     @GET("counters")
@@ -16,12 +10,15 @@ interface CountersRetrofitApi {
     @POST("counter")
     suspend fun saveCounter(@Body body: CounterCreateBodyRequest): CounterEntity
 
-    @POST("counter/inc")
-    suspend fun incrementCounter(@Body body: CounterBodyRequest): CountersResponse
+    @POST("counter")
+    suspend fun saveCounters(@Body body: CountersCreateBodyRequest): CountersResponse
 
-    @POST("counter/dec")
-    suspend fun decrementCounter(@Body body: CounterBodyRequest): CountersResponse
+    @PATCH("counter/inc")
+    suspend fun incrementCounter(@Body body: CounterBodyRequest): CounterEntity
+
+    @PATCH("counter/dec")
+    suspend fun decrementCounter(@Body body: CounterBodyRequest): CounterEntity
 
     @HTTP(method = "DELETE", path = "counter", hasBody = true)
-    suspend fun deleteCounter(@Body body: CounterBodyRequest): CountersResponse
+    suspend fun deleteCounter(@Body body: CounterBodyRequest): Unit?
 }

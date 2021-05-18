@@ -6,7 +6,7 @@ import cl.getapps.kounters.feature.counters.data.repository.source.remote.entity
 interface CountersDataSource {
     suspend fun getCounters(): CountersResponse
     suspend fun saveCounter(title: String): CounterEntity
-    suspend fun removeCounter(id: Int): CountersResponse
-    suspend fun incrementCounter(id: Int): CountersResponse
-    suspend fun decrementCounter(id: Int): CountersResponse
+    suspend fun removeCounter(id: Int): Unit?
+    suspend fun incrementCounter(id: Int): CounterEntity
+    suspend fun decrementCounter(id: Int): CounterEntity
 }
